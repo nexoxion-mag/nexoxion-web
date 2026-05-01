@@ -515,7 +515,38 @@
             gsap.to(`#v-sub-${pageIndex}`, { duration: 1, opacity: 1, y: 0, ease: "power3.out", delay: 1 });
         }
 
-        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+      // --- 手机端触摸翻页支持 ---
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        window.addEventListener('touchstart', (e) => {
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            touchEndY = e.changedTouches[0].screenY;
+            const swipeDistance = touchStartY - touchEndY;
+            const threshold = 50; // 滑动超过50像素触发
+
+            if (isAnimating) return;
+
+            if (swipeDistance > threshold) { // 向上划，看下一页
+                if (currentPage === 1) transitionToPage2();
+                else if (currentPage === 3 && currentSubPage < 4) changeSubPage(currentSubPage + 1);
+                else if (currentPage === 6 && currentVisionPage < 4) changeVisionPage(currentVisionPage + 1);
+            } else if (swipeDistance < -threshold) { // 向下划，回上一页
+                if (currentPage === 2) transitionToPage1();
+                else if (currentPage === 3 && currentSubPage > 1) changeSubPage(currentSubPage - 1);
+                else if (currentPage === 6 && currentVisionPage > 1) changeVisionPage(currentVisionPage - 1);
+            }
+        }, { passive: true });
+
+        // --- 原有的窗口缩放监听 ---
+        window.addEventListener('resize', () => { 
+            camera.aspect = window.innerWidth / window.innerHeight; 
+            camera.updateProjectionMatrix(); 
+            renderer.setSize(window.innerWidth, window.innerHeight); 
+        });
     </script>
 </body>
 </html>
