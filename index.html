@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexoxion Visions - Avant-Garde Portfolio</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background-color: #030303; color: #ffffff; 
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            overflow: hidden; 
+        }
+        #webgl-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+        .page-section { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2; pointer-events: none; display: flex; flex-direction: column; justify-content: center; padding-left: 5%; }
+
+        /* 公共元素 */
+        .back-btn { position: absolute; top: 40px; left: 5%; font-size: 14px; letter-spacing: 2px; cursor: pointer; transition: opacity 0.3s; opacity: 0.5; text-transform: uppercase; z-index: 20; pointer-events: auto;}
+        .back-btn:hover { opacity: 1; }
+        .detail-main-title { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); font-size: 12px; letter-spacing: 4px; opacity: 0.3; text-transform: uppercase; z-index: 20;}
+
+        /* Page 1: 首屏 */
+        #page-1 h1 { font-size: 7.5vw; font-weight: 800; letter-spacing: -0.02em; line-height: 1; text-transform: uppercase; }
+        #page-1 p { margin-top: 20px; font-size: 1.2vw; letter-spacing: 0.2em; text-transform: uppercase; }
+        
+        #home-intro {
+            position: absolute; right: 4%; top: 20%; width: 25vw; opacity: 0; mix-blend-mode: difference;
+            animation: floatIntro 6s ease-in-out infinite; pointer-events: none; z-index: 0; 
+        }
+        #home-intro h2 { font-size: 3vw; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 5px; }
+        #home-intro h3 { font-size: 1.1vw; font-weight: 600; text-transform: uppercase; margin-bottom: 10px; color: #aaaaaa;}
+        #home-intro p { font-size: 0.95vw; line-height: 1.8; font-weight: 300; letter-spacing: 1px; margin-bottom: 10px; }
+
+        @keyframes floatIntro { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+        /* Page 2: 目录 */
+        #page-2 { visibility: hidden; opacity: 0; z-index: 10; }
+        .work-item { font-size: 4vw; font-weight: 300; text-transform: uppercase; margin: 10px 0; color: #ffffff; opacity: 1; transition: transform 0.3s ease, text-shadow 0.3s ease; pointer-events: auto; cursor: pointer; width: fit-content; position: relative; z-index: 10;}
+        .work-item:hover { transform: translateX(20px); font-style: italic; text-shadow: 0 0 20px rgba(255,255,255,0.8); }
+
+        /* Page 3: Concept */
+        #page-3 { visibility: hidden; opacity: 0; padding-top: 15vh; pointer-events: auto; }
+        .text-panel { width: 35%; position: relative; height: 60vh; }
+        .sub-content { position: absolute; top: 0; left: 0; width: 100%; opacity: 0; visibility: hidden; }
+        .sub-content h2 { font-size: 3vw; margin-bottom: 25px; text-transform: uppercase; line-height: 1.2; text-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        .sub-content p { font-size: 1.05vw; line-height: 1.8; opacity: 0.8; font-weight: 300; text-shadow: 0 0 10px rgba(0,0,0,0.8); }
+        .detail-progress { position: absolute; bottom: 10vh; left: 5%; display: flex; gap: 8px; opacity: 0; }
+        .dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; opacity: 0.2; transition: opacity 0.3s; }
+        .dot.active { opacity: 1; box-shadow: 0 0 10px #fff; transform: scale(1.5); }
+
+        /* Page 4: Shop Grid */
+        #page-4 { visibility: hidden; opacity: 0; padding-top: 12vh; pointer-events: auto; align-items: center; }
+        .shop-container { 
+            width: 80%; height: 75vh; margin: 0 auto; display: grid; 
+            grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2vw; 
+            overflow-y: auto; padding-bottom: 5vh; padding-right: 1vw;
+        }
+        .shop-container::-webkit-scrollbar { display: none; }
+        .product-card { 
+            border: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            transition: all 0.4s; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); cursor: pointer; position: relative; overflow: hidden;
+        }
+        
+        .product-card.black-bg { background: #000000; border: 1px solid rgba(255,255,255,0.05); }
+        .product-thumb { width: 45%; max-height: 45%; object-fit: contain; margin-bottom: 20px; z-index: 2; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); transition: transform 0.4s; }
+        .product-card:hover .product-thumb { transform: scale(1.1) translateY(-10px); }
+
+        .product-card::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent); transform: skewX(-25deg); transition: 0.5s; z-index: 1;}
+        .product-card:hover::before { left: 150%; }
+        .product-card:hover { border-color: rgba(255,255,255,0.6); transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        .product-title { font-size: 1.5vw; text-transform: uppercase; letter-spacing: 3px; font-weight: 300; pointer-events: none; z-index: 2;}
+        .product-price { font-size: 1vw; opacity: 0.5; margin-top: 15px; font-style: italic; pointer-events: none; z-index: 2;}
+
+        /* Page 4.1: Product Detail */
+        #page-4-detail { visibility: hidden; opacity: 0; pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;}
+        #pd-bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.15; z-index: 0; pointer-events: none; filter: saturate(1.2); }
+        #pd-main-img { max-width: 45vw; max-height: 45vh; object-fit: contain; margin-bottom: 30px; z-index: 10; border-radius: 8px; filter: drop-shadow(0 20px 50px rgba(0,0,0,0.9)); }
+        #pd-title { font-size: 4vw; text-transform: uppercase; font-weight: 800; text-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 10; letter-spacing: 5px;}
+        #pd-price { font-size: 1.5vw; font-style: italic; opacity: 0.6; margin-top: 10px; z-index: 10; }
+        .buy-btn { margin-top: 30px; padding: 15px 40px; border: 1px solid #fff; font-size: 1vw; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; transition: 0.3s; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 10;}
+        .buy-btn:hover { background: #fff; color: #000; box-shadow: 0 0 20px rgba(255,255,255,0.5); }
+
+        /* Page 5: About Team */
+        #page-5 { visibility: hidden; opacity: 0; pointer-events: auto; display: flex; align-items: center; justify-content: center; padding: 0;}
+        .about-wrapper { text-align: center; width: 60%; animation: floatIntro 5s ease-in-out infinite; }
+        .about-wrapper h2 { font-size: 3vw; letter-spacing: 8px; margin-bottom: 20px; text-transform: uppercase; }
+        .about-wrapper p { font-size: 1.2vw; line-height: 1.8; opacity: 0.7; margin-bottom: 50px; }
+        .img-grid { display: flex; justify-content: center; gap: 30px; margin-bottom: 60px; }
+        /* 移除占位框原有样式，用 img 标签直接展示 */
+        .contact-footer { font-size: 0.9vw; letter-spacing: 3px; opacity: 0.4; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px; }
+
+        /* Page 6: Our Visions */
+        #page-6 { visibility: hidden; opacity: 0; pointer-events: auto; align-items: center; padding-left: 0; }
+        .vision-sub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; text-align: center; opacity: 0; visibility: hidden; display: flex; flex-direction: column; align-items: center; }
+        .vision-sub h2 { font-size: 2.8vw; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 15px; text-shadow: 0 5px 20px rgba(0,0,0,0.8);}
+        .vision-sub p { font-size: 1vw; opacity: 0.8; max-width: 650px; margin: 0 auto 40px auto; line-height: 1.6; text-shadow: 0 5px 10px rgba(0,0,0,0.8);}
+        .scroll-indicator { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 10; font-size: 12px; letter-spacing: 2px; opacity: 0.5; animation: pulse 2s infinite; pointer-events: none;}
+    </style>
+</head>
+<body>
+
+    <div class="scroll-indicator">SCROLL TO EXPLORE</div>
+    <div id="webgl-container"></div>
+
+    <div class="page-section" id="page-1">
+        <h1 class="title">Nexoxion<br>Visions.</h1>
+        <p class="subtitle">Selected Works 2023 - 2026</p>
+    </div>
+    
+    <!-- NEXOXION 哲学介绍 -->
+    <div id="home-intro">
+        <h2>Nexoxion</h2>
+        <h3>Redefining the Morphology of Tomorrow.</h3>
+        <p>NEXOXION is a radical design collective operating at the intersection of Post-Modern Deconstructivism and Biomorphic Magnetic Parametrics. We don't follow trends; we engineer them through algorithmic chaos and organic logic.</p>
+        <p>Our philosophy is rooted in the "glitch" of nature—where mathematical precision meets the raw, untamed energy of evolution. By synthesizing high-frequency functionalism with experimental aesthetics, NEXOXION delivers a visual vocabulary that has never existed, yet feels inevitable. We are the architects of the unseen.</p>
+    </div>
+
+    <div class="page-section" id="page-2">
+        <div class="work-item work-title" id="nav-concept">01 / Design Concept</div>
+        <div class="work-item work-title" id="nav-shop">02 / Online Shopping</div>
+        <div class="work-item work-title" id="nav-about">03 / About Team</div>
+        <div class="work-item work-title" id="nav-vision">04 / Our visions</div>
+    </div>
+
+    <!-- The Four Pillars of the NEXOXION Genome -->
+    <div class="page-section" id="page-3">
+        <div class="back-btn" id="back-from-concept">← BACK TO LIST</div>
+        <div class="detail-main-title">The Four Pillars of the NEXOXION Genome</div>
+        <div class="text-panel">
+            <div class="sub-content" id="sub-1"><h2>I. Helix Evolution</h2><p>The application of bionic spiral functions. We map the DNA of natural growth onto synthetic structures, creating forms that breathe, twist, and adapt. It is the geometry of life, captured in a frozen state of motion.</p></div>
+            <div class="sub-content" id="sub-2"><h2>II. Parametric Extreme</h2><p>The ultimate expression of mathematical fluidity. Using custom-coded magnetic field parameters, we push curvature to its physical limit. Every line is a trajectory; every surface is a calculation of pure elegance.</p></div>
+            <div class="sub-content" id="sub-3"><h2>III. Cellular Core</h2><p>A dialogue between irregular spatial volumes and internal nuclei. We explore the tension between the protective shell and the pulsating heart, utilizing negative space to redefine how an object occupies the void.</p></div>
+            <div class="sub-content" id="sub-4"><h2>IV. Anatomic Geometry</h2><p>The fusion of human ergonomics and abstract minimalism. We treat the body as a landscape, designing interfaces that bridge the gap between biological curves and the sharp, uncompromising edge of geometric futurism.</p></div>
+        </div>
+        <div class="detail-progress">
+            <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+    </div>
+
+    <!-- Shop Grid -->
+    <div class="page-section" id="page-4">
+        <div class="back-btn" id="back-from-shop">← BACK TO LIST</div>
+        <div class="detail-main-title">02 / Online Shopping</div>
+        <div class="shop-container">
+            
+            <!-- 商品 1 -->
+            <div class="product-card black-bg" 
+                 data-title="Mag Core Entity" 
+                 data-price="€ 999.00" 
+                 data-main-img="IMG_1566_2.jpg"   
+                 data-bg-img="IMG_0094_2.jpg">      
+                <img src="product1-thumb.png" class="product-thumb" alt="Product Image" style="display: block;">
+                <div class="product-title">Mag Core Entity</div>
+                <div class="product-price">€ 999.00</div>
+            </div>
+            
+            <!-- 商品 2 -->
+            <div class="product-card" 
+                 data-title="Void Mask 01" 
+                 data-price="€ 1,200.00"
+                 data-main-img="image_010bfe.jpg">
+                <img src="image_010bfe.jpg" class="product-thumb" alt="Product Image" style="display: block;">
+                <div class="product-title">Void Mask 01</div>
+                <div class="product-price">€ 1,200.00</div>
+            </div>
+
+            <!-- 商品 3 -->
+            <div class="product-card" 
+                 data-title="Cellular Shield" 
+                 data-price="€ 180.00"
+                 data-main-img="product3-case-silver.jpg">
+                <img src="product3-case-silver.jpg" class="product-thumb" alt="Product Image" style="display: block;">
+                <div class="product-title">Cellular Shield</div>
+                <div class="product-price">€ 180.00</div>
+            </div>
+
+            <!-- 商品 4 -->
+            <div class="product-card" 
+                 data-title="Biomorphic Scaffold" 
+                 data-price="€ 3,500.00"
+                 data-main-img="product4-structure.jpg">
+                <img src="product4-structure.jpg" class="product-thumb" alt="Product Image" style="display: block;">
+                <div class="product-title">Biomorphic Scaffold</div>
+                <div class="product-price">€ 3,500.00</div>
+            </div>
+
+            <!-- 商品 5 -->
+            <div class="product-card" 
+                 data-title="Porifera Bone Case" 
+                 data-price="€ 150.00"
+                 data-main-img="product5-case-white.jpg">
+                <img src="product5-case-white.jpg" class="product-thumb" alt="Product Image" style="display: block;">
+                <div class="product-title">Porifera Bone Case</div>
+                <div class="product-price">€ 150.00</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 动态详情页 -->
+    <div class="page-section" id="page-4-detail">
+        <div id="pd-bg-layer"></div>
+        <div class="back-btn" id="back-from-pd">← BACK TO SHOP</div>
+        <img id="pd-main-img" src="" alt="Main Entity" style="display:none;">
+        <h2 id="pd-title">Product Name</h2>
+        <p id="pd-price">€ 0.00</p>
+        <div class="buy-btn">PURCHASE VIRTUAL ASSET</div>
+    </div>
+
+    <div class="page-section" id="page-5">
+        <div class="back-btn" id="back-from-about">← BACK TO LIST</div>
+        <div class="detail-main-title">03 / About Team</div>
+        <div class="about-wrapper">
+            <h2>THE ARCHITECTS OF THE VOID</h2>
+            <p>NEXOXION is a decentralized global collective of visionaries, engineers, and digital artists, operating at the bleeding edge of multidisciplinary design. Headquartered in the epicenter of high-fashion and structural elegance—Milan, Italy—our team draws inspiration from the collision of diverse cultures and hyper-modern technologies. At the helm is our Founder, a visionary of Uyghur heritage whose design philosophy was forged through the rigorous discipline of Architecture. This foundational background in structural logic, spatial tension, and environmental mathematics allows NEXOXION to approach a simple product with the same complexity as a skyscraper.</p>
+            
+            <div class="img-grid">
+                <!-- 填入两张垂直海报的图像 -->
+                <img src="about1-book.jpg" alt="Founder" style="width: 15vw; height: 20vw; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); backdrop-filter: blur(5px);">
+                <img src="about2-archive.jpg" alt="Architects" style="width: 15vw; height: 20vw; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); backdrop-filter: blur(5px);">
+            </div>
+            
+            <div class="contact-footer">CONTACT: void@nexoxion.net &nbsp;&nbsp;|&nbsp;&nbsp; INTEL: +01 999 888 777</div>
+        </div>
+    </div>
+
+    <!-- Our Visions -->
+    <div class="page-section" id="page-6">
+        <div class="back-btn" id="back-from-vision">← BACK TO LIST</div>
+        <div class="detail-main-title">The Roadmap to Global Aesthetic Dominance</div>
+        <div class="vision-container">
+            <div class="vision-sub" id="v-sub-1"><h2>Phase 01: Neural Expansion</h2><p>Breaking the constraints of traditional design logic. Our initial focus is the relentless pursuit of new conceptual frameworks and "Impossible Geometries" to broaden the horizon of what is visually permissible.</p></div>
+            <div class="vision-sub" id="v-sub-2"><h2>Phase 02: Multi-Domain Synthesis</h2><p>The NEXOXION aesthetic transcends medium. We are scaling our DNA across a diverse ecosystem: from Avant-Garde Jewelry and Cyber-Couture to Parametric Furniture and Digital Artifacts.</p></div>
+            <div class="vision-sub" id="v-sub-3"><h2>Phase 03: Hybrid Ecosystem</h2><p>Bridging the digital and the physical. We are launching an integrated platform that pairs high-velocity online trend-setting with immersive, experimental "Offline Pilot" pop-ups.</p></div>
+            <div class="vision-sub" id="v-sub-4"><h2>Phase 04: Global Frontier</h2><p>Strategic territorial expansion. Establishing our headquarters in the heart of the European Underground, followed by a tactical rollout of flagship boutiques across Tokyo, Seoul, Shanghai, and New York.</p></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.getElementById('webgl-container').appendChild(renderer.domElement);
+
+        const bgGeometry = new THREE.TorusKnotGeometry(10, 3, 200, 32);
+        const bgMaterial = new THREE.PointsMaterial({ size: 0.05, color: 0xaaaaaa, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
+        const bgParticles = new THREE.Points(bgGeometry, bgMaterial);
+        scene.add(bgParticles);
+
+        const spineGeo = new THREE.BufferGeometry();
+        const spineCount = 12000; 
+        const spinePos = new Float32Array(spineCount * 3);
+        const spineColors = new Float32Array(spineCount * 3);
+        
+        for(let i=0; i<spineCount; i++) {
+            let t = i / spineCount;
+            let y = (t - 0.5) * 120; let x = Math.sin(t * Math.PI * 3) * 25; let z = Math.cos(t * Math.PI * 2) * 12;  
+            let angle = Math.random() * Math.PI * 2; let vertebraBump = Math.abs(Math.sin(t * Math.PI * 8)); 
+            let baseRadius = 2 + vertebraBump * 6; 
+            if (Math.random() > 0.8) baseRadius += Math.random() * 20 * Math.sin(t * Math.PI); 
+            spinePos[i*3] = x + Math.cos(angle) * baseRadius; spinePos[i*3+1] = y; spinePos[i*3+2] = z + Math.sin(angle) * baseRadius;
+            spineColors[i*3] = 0.2 + t * 0.5; spineColors[i*3+1] = 0.8 - t * 0.4; spineColors[i*3+2] = 0.8 + t * 0.2;  
+        }
+        spineGeo.setAttribute('position', new THREE.BufferAttribute(spinePos, 3));
+        spineGeo.setAttribute('color', new THREE.BufferAttribute(spineColors, 3));
+        const spineMat = new THREE.PointsMaterial({ size: 0.18, vertexColors: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
+        const spineParticles = new THREE.Points(spineGeo, spineMat);
+        scene.add(spineParticles);
+
+        function createConceptualTexture(type) {
+            const canvas = document.createElement('canvas'); canvas.width=1024; canvas.height=1024; const ctx=canvas.getContext('2d');
+            ctx.fillStyle='#000000'; ctx.fillRect(0,0,1024,1024); ctx.translate(512,512); 
+            ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            if(type===1) { 
+                ctx.shadowBlur=8; ctx.shadowColor='rgba(255,255,255,0.5)';
+                for(let j=0;j<2;j++){ let sign=j===0?1:-1; for(let i=0;i<400;i++){ let angle=0.12*i; let r=0.8*angle*angle; let size=Math.max(1,20-i*0.05); let alpha=Math.max(0.15,1-i/400); ctx.beginPath(); ctx.arc(Math.cos(angle)*r*sign, Math.sin(angle)*r*sign, size, 0, Math.PI*2); ctx.fillStyle=`rgba(255,255,255,${alpha})`; ctx.fill(); } }
+            } else if(type===2) { 
+                ctx.shadowBlur=8; ctx.shadowColor='rgba(255,255,255,0.5)';
+                const nodes=[]; for(let i=0;i<18;i++) nodes.push({x:(Math.random()-0.5)*650, y:(Math.random()-0.5)*650, r:12+Math.random()*30});
+                ctx.lineWidth=6; ctx.strokeStyle='rgba(255,255,255,0.6)';
+                nodes.forEach((n1,i)=>{ nodes.slice(i+1).forEach(n2=>{ if(Math.hypot(n1.x-n2.x,n1.y-n2.y)<300){ ctx.beginPath(); ctx.moveTo(n1.x,n1.y); ctx.quadraticCurveTo(0,0,n2.x,n2.y); ctx.stroke(); } }); const grad=ctx.createRadialGradient(n1.x,n1.y,0,n1.x,n1.y,n1.r*1.2); grad.addColorStop(0,'rgba(255,255,255,1)'); grad.addColorStop(0.3,'rgba(255,255,255,0.6)'); grad.addColorStop(1,'rgba(255,255,255,0)'); ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(n1.x,n1.y,n1.r*1.2,0,Math.PI*2); ctx.fill(); });
+            } else if(type===3) { 
+                for(let i=0;i<180;i++){ let r1=Math.random()*420; let a1=Math.random()*Math.PI*2; let x1=Math.cos(a1)*r1; let y1=Math.sin(a1)*r1; let size=25+Math.random()*70; ctx.fillStyle=`rgba(255,255,255,${Math.random()*0.5+0.1})`; ctx.beginPath(); for(let j=0;j<6;j++){ let a2=(j/6)*Math.PI*2+Math.random()*0.5; let r2=size*(0.6+Math.random()*0.4); ctx.lineTo(x1+Math.cos(a2)*r2, y1+Math.sin(a2)*r2); } ctx.closePath(); ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=`rgba(255,255,255,${Math.random()*0.8+0.2})`; ctx.stroke(); }
+            } else if(type===4) { 
+                let nodes=[]; for(let i=0;i<12;i++) nodes.push({x:(Math.random()-0.5)*600, y:(Math.random()-0.5)*600});
+                nodes.forEach(n1=>{ nodes.forEach(n2=>{ if(n1!==n2 && Math.hypot(n1.x-n2.x, n1.y-n2.y)<400) { for(let w=1; w<=6; w++) { ctx.beginPath(); ctx.moveTo(n1.x, n1.y); ctx.quadraticCurveTo(n1.x + w*15, n2.y - w*15, n2.x, n2.y); ctx.lineWidth=1.5; ctx.strokeStyle=`rgba(255,255,255,${1 - w*0.15})`; ctx.stroke(); } } }) });
+            }
+            const texture=new THREE.CanvasTexture(canvas); texture.anisotropy=renderer.capabilities.getMaxAnisotropy(); return texture;
+        }
+
+        const textures = [null, createConceptualTexture(1), createConceptualTexture(2), createConceptualTexture(3), createConceptualTexture(4)];
+        const planeMat = new THREE.MeshBasicMaterial({ map: textures[1], transparent: true, blending: THREE.AdditiveBlending, opacity: 0, depthWrite: false, color: 0xffffff });
+        const hologramPlane = new THREE.Mesh(new THREE.PlaneGeometry(26, 26), planeMat);
+        hologramPlane.position.set(10, 0, 0); 
+        scene.add(hologramPlane);
+        camera.position.z = 30;
+
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (event) => { mouseX = (event.clientX - window.innerWidth / 2) * 0.001; mouseY = (event.clientY - window.innerHeight / 2) * 0.001; });
+
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const t = clock.getElapsedTime();
+            
+            bgParticles.rotation.y = t * 0.1; bgParticles.rotation.z = t * 0.05;
+            bgParticles.rotation.y += 0.05 * (mouseX * 2 - bgParticles.rotation.y);
+            bgParticles.rotation.x += 0.05 * (mouseY * 2 - bgParticles.rotation.x);
+
+            spineParticles.rotation.y = t * -0.15; spineParticles.position.y = Math.sin(t * 0.8) * 3; 
+            spineParticles.rotation.x += 0.05 * (mouseY * 2 - spineParticles.rotation.x); spineParticles.rotation.z += 0.05 * (-mouseX * 2 - spineParticles.rotation.z); 
+
+            hologramPlane.position.y = Math.sin(t * 1.2) * 0.5; hologramPlane.rotation.y = -mouseX * 0.5; hologramPlane.rotation.x = -mouseY * 0.5;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        let currentPage = 1; let currentSubPage = 1; let isAnimating = false; let currentVisionPage = 1;
+
+        document.querySelector('.shop-container').addEventListener('wheel', (e) => { e.stopPropagation(); });
+
+        window.addEventListener('wheel', (e) => {
+            if (isAnimating) return;
+            if (currentPage === 1 && e.deltaY > 50) transitionToPage2();
+            else if (currentPage === 2 && e.deltaY < -50) transitionToPage1();
+            else if (currentPage === 3) {
+                if (e.deltaY > 50 && currentSubPage < 4) changeSubPage(currentSubPage + 1); 
+                else if (e.deltaY < -50 && currentSubPage > 1) changeSubPage(currentSubPage - 1);
+            }
+            else if (currentPage === 6) {
+                if (e.deltaY > 50 && currentVisionPage < 4) changeVisionPage(currentVisionPage + 1);
+                else if (e.deltaY < -50 && currentVisionPage > 1) changeVisionPage(currentVisionPage - 1);
+            }
+        });
+
+        gsap.fromTo(".title", { opacity: 0, y: 50 }, { duration: 1.5, opacity: 1, y: 0, ease: "power4.out", delay: 0.5 });
+        gsap.fromTo(".subtitle", { opacity: 0 }, { duration: 1.5, opacity: 1, ease: "power4.out", delay: 1 });
+        gsap.fromTo("#home-intro", { opacity: 0, x: 50 }, { duration: 1.5, opacity: 0.35, x: 0, ease: "power4.out", delay: 1.2 });
+
+        function transitionToPage2() {
+            isAnimating = true; currentPage = 2;
+            gsap.to("#page-1", { duration: 1, opacity: 0, y: -100, ease: "power3.inOut" });
+            gsap.to("#home-intro", { duration: 1, opacity: 0, x: 50, ease: "power3.inOut" }); 
+            gsap.fromTo("#page-2", { visibility: "visible", opacity: 0, y: 100 }, { duration: 1, opacity: 1, y: 0, ease: "power3.inOut", delay: 0.2 });
+            gsap.fromTo(".work-title", { opacity: 0, x: -50 }, { duration: 1, opacity: 1, x: 0, stagger: 0.1, ease: "power3.out", delay: 0.5 });
+            gsap.to(camera.position, { duration: 2, z: 12, ease: "power4.inOut" });
+            gsap.to(bgMaterial.color, { duration: 2, r: 0.1, g: 0.3, b: 0.8 }); 
+            setTimeout(() => { isAnimating = false; }, 2000);
+        }
+
+        function transitionToPage1() {
+            isAnimating = true; currentPage = 1;
+            gsap.to("#page-2", { duration: 1, opacity: 0, y: 100, ease: "power3.inOut" });
+            gsap.to("#page-1", { duration: 1, opacity: 1, y: 0, ease: "power3.inOut", delay: 0.2 });
+            gsap.to("#home-intro", { duration: 1, opacity: 0.35, x: 0, ease: "power3.inOut", delay: 0.2 }); 
+            gsap.to(camera.position, { duration: 2, z: 30, ease: "power4.inOut" });
+            gsap.to(bgMaterial.color, { duration: 2, r: 0.66, g: 0.66, b: 0.66 }); 
+            setTimeout(() => { gsap.set("#page-2", { visibility: "hidden" }); isAnimating = false; }, 2000);
+        }
+
+        document.getElementById('nav-concept').addEventListener('click', () => { if (!isAnimating) transitionToPage3(); });
+        document.getElementById('nav-shop').addEventListener('click', () => { if (!isAnimating) transitionToPage4(); });
+        document.getElementById('nav-about').addEventListener('click', () => { if (!isAnimating) transitionToPage5(); });
+        document.getElementById('nav-vision').addEventListener('click', () => { if (!isAnimating) transitionToPage6(); });
+
+        document.getElementById('back-from-concept').addEventListener('click', () => transitionBackTo2("#page-3"));
+        document.getElementById('back-from-shop').addEventListener('click', () => transitionBackTo2("#page-4"));
+        document.getElementById('back-from-pd').addEventListener('click', () => backToShopGrid());
+        document.getElementById('back-from-about').addEventListener('click', () => transitionBackTo2("#page-5"));
+        document.getElementById('back-from-vision').addEventListener('click', () => transitionBackTo2FromVision());
+
+        function transitionBackTo2(fromPageId) {
+            isAnimating = true; currentPage = 2;
+            gsap.to(fromPageId, { duration: 1, opacity: 0, x: 100, ease: "power3.inOut" });
+            gsap.set("#page-2", { visibility: "visible" });
+            gsap.fromTo("#page-2", { opacity: 0, x: -100 }, { duration: 1, opacity: 1, x: 0, ease: "power3.inOut", delay: 0.2 });
+            gsap.to(camera.position, { duration: 2, z: 12, x:0, ease: "power4.inOut" });
+            gsap.to(bgMaterial, { duration: 2, opacity: 0.8 }); gsap.to(bgMaterial.color, { duration: 2, r: 0.1, g: 0.3, b: 0.8 }); 
+            gsap.to(hologramPlane.material, { duration: 0.5, opacity: 0 }); 
+            setTimeout(() => { gsap.set(fromPageId, { visibility: "hidden" }); isAnimating = false; }, 2000);
+        }
+
+        function transitionToPage3() {
+            isAnimating = true; currentPage = 3; currentSubPage = 1;
+            gsap.to("#page-2", { duration: 1, opacity: 0, x: -100, ease: "power3.inOut" });
+            gsap.fromTo("#page-3", { visibility: "visible", opacity: 0, x: 100 }, { duration: 1, opacity: 1, x: 0, ease: "power3.inOut", delay: 0.2 });
+            gsap.to(".detail-progress", { duration: 1, opacity: 1, delay: 1 });
+            gsap.to(hologramPlane.scale, { duration: 0.1, x: 1, y: 1, z: 1 }); gsap.to(hologramPlane.position, { duration: 0.1, x: 10 });
+            gsap.to(camera.position, { duration: 2, z: 20, ease: "power4.inOut" }); gsap.to(bgMaterial, { duration: 2, opacity: 0.15 }); 
+            showSubContent(1); setTimeout(() => { gsap.set("#page-2", { visibility: "hidden" }); isAnimating = false; }, 2000);
+        }
+
+        function changeSubPage(targetPage) {
+            isAnimating = true; const isScrollingDown = targetPage > currentSubPage; const oldPage = currentSubPage; currentSubPage = targetPage;
+            gsap.to(`#sub-${oldPage}`, { duration: 0.8, opacity: 0, y: isScrollingDown ? -50 : 50, ease: "power3.in", onComplete: () => { document.getElementById(`sub-${oldPage}`).style.visibility = "hidden"; } });
+            
+            let tScale = (targetPage % 2 === 0) ? 1.4 : 1; let tPosX = (targetPage % 2 === 0) ? 12 : 10;
+            gsap.to(hologramPlane.scale, { duration: 1.2, x: tScale, y: tScale, z: tScale, ease: "power2.out" });
+            gsap.to(hologramPlane.position, { duration: 1.2, x: tPosX, ease: "power2.out" });
+
+            gsap.to(hologramPlane.material, { duration: 0.4, opacity: 0, ease: "power2.inOut", onComplete: () => {
+                planeMat.map = textures[targetPage]; planeMat.needsUpdate=true;
+                const colors = [[0,0,0], [0.1,0.3,0.8], [0.8,0.2,0.4], [0.9,0.7,0.1], [0.5,0.1,0.9]];
+                gsap.to(bgMaterial.color, { duration: 1, r: colors[targetPage][0], g: colors[targetPage][1], b: colors[targetPage][2] });
+                gsap.to(hologramPlane.material, { duration: 0.8, opacity: 1, ease: "power2.out", delay: 0.2 });
+            }});
+            gsap.set(`#sub-${currentSubPage}`, { visibility: "visible", y: isScrollingDown ? 50 : -50 });
+            gsap.to(`#sub-${currentSubPage}`, { duration: 1, opacity: 1, y: 0, ease: "power3.out", delay: 0.6 });
+            document.querySelectorAll('.dot').forEach((dot, index) => { dot.classList.toggle('active', index === currentSubPage - 1); });
+            setTimeout(() => { isAnimating = false; }, 1800); 
+        }
+
+        function showSubContent(pageIndex) {
+            gsap.set(".sub-content", { opacity: 0, visibility: "hidden", y: 50 }); gsap.set(`#sub-${pageIndex}`, { visibility: "visible" }); gsap.to(`#sub-${pageIndex}`, { duration: 1, opacity: 1, y: 0, ease: "power3.out", delay: 1 });
+            planeMat.map = textures[pageIndex]; planeMat.needsUpdate = true; gsap.to(hologramPlane.material, { duration: 1.5, opacity: 1, delay: 1 });
+            document.querySelectorAll('.dot').forEach((dot, index) => { dot.classList.toggle('active', index === pageIndex - 1); });
+        }
+
+        function transitionToPage4() {
+            isAnimating = true; currentPage = 4;
+            gsap.to("#page-2", { duration: 1, opacity: 0, x: -100, ease: "power3.inOut" });
+            gsap.fromTo("#page-4", { visibility: "visible", opacity: 0, x: 100 }, { duration: 1, opacity: 1, x: 0, ease: "power3.inOut", delay: 0.2 });
+            gsap.to(camera.position, { duration: 2, z: 25, ease: "power4.inOut" }); 
+            gsap.to(bgMaterial, { duration: 2, opacity: 0.1 }); gsap.to(bgMaterial.color, { duration: 2, r: 0.8, g: 0.8, b: 0.9 }); 
+            gsap.fromTo(".product-card", { opacity: 0, y: 60 }, { duration: 0.8, opacity: 1, y: 0, stagger: 0.1, ease: "back.out(1.2)", delay: 0.6 });
+            setTimeout(() => { gsap.set("#page-2", { visibility: "hidden" }); isAnimating = false; }, 2000);
+        }
+
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', function() {
+                if(isAnimating) return; isAnimating = true; currentPage = 41; 
+                
+                document.getElementById('pd-title').innerText = this.getAttribute('data-title'); 
+                document.getElementById('pd-price').innerText = this.getAttribute('data-price');
+                
+                const mainImgSrc = this.getAttribute('data-main-img');
+                const bgImgSrc = this.getAttribute('data-bg-img');
+                const pdMainImg = document.getElementById('pd-main-img');
+                const pdBgLayer = document.getElementById('pd-bg-layer');
+
+                if(mainImgSrc) { pdMainImg.src = mainImgSrc; pdMainImg.style.display = 'block'; } else { pdMainImg.style.display = 'none'; }
+                if(bgImgSrc) { pdBgLayer.style.backgroundImage = `url(${bgImgSrc})`; } else { pdBgLayer.style.backgroundImage = 'none'; }
+
+                gsap.to("#page-4", { duration: 0.8, opacity: 0, scale: 0.9, ease: "power3.inOut", onComplete:()=>gsap.set("#page-4", {visibility:"hidden"}) });
+                gsap.fromTo("#page-4-detail", { visibility: "visible", opacity: 0, scale: 1.1 }, { duration: 0.8, opacity: 1, scale: 1, ease: "power3.inOut", delay: 0.2 });
+                gsap.to(camera.position, { duration: 1.5, z: 10, ease: "power4.inOut" }); 
+                
+                setTimeout(() => { isAnimating = false; }, 1200);
+            });
+        });
+
+        function backToShopGrid() {
+            if(isAnimating) return; isAnimating = true; currentPage = 4;
+            gsap.to("#page-4-detail", { duration: 0.8, opacity: 0, scale: 1.1, ease: "power3.inOut", onComplete:()=>gsap.set("#page-4-detail", {visibility:"hidden"}) });
+            gsap.set("#page-4", { visibility: "visible" });
+            gsap.fromTo("#page-4", { opacity: 0, scale: 0.9 }, { duration: 0.8, opacity: 1, scale: 1, ease: "power3.inOut", delay: 0.2 });
+            gsap.to(camera.position, { duration: 1.5, z: 25, ease: "power4.inOut" }); 
+            setTimeout(() => { isAnimating = false; }, 1200);
+        }
+
+        function transitionToPage5() {
+            isAnimating = true; currentPage = 5;
+            gsap.to("#page-2", { duration: 1, opacity: 0, x: -100, ease: "power3.inOut" });
+            gsap.fromTo("#page-5", { visibility: "visible", opacity: 0, y: 50 }, { duration: 1, opacity: 1, y: 0, ease: "power3.inOut", delay: 0.2 });
+            gsap.to(camera.position, { duration: 2, z: 18, ease: "power4.inOut" }); 
+            gsap.to(bgMaterial, { duration: 2, opacity: 0.2 }); gsap.to(bgMaterial.color, { duration: 2, r: 0.9, g: 0.9, b: 0.9 }); 
+            setTimeout(() => { gsap.set("#page-2", { visibility: "hidden" }); isAnimating = false; }, 2000);
+        }
+
+        function transitionToPage6() {
+            isAnimating = true; currentPage = 6; currentVisionPage = 1;
+            gsap.to("#page-2", { duration: 1, opacity: 0, x: -100, ease: "power3.inOut" });
+            gsap.fromTo("#page-6", { visibility: "visible", opacity: 0, y: 50 }, { duration: 1, opacity: 1, y: 0, ease: "power3.inOut", delay: 0.2 });
+            gsap.to(bgMaterial, { duration: 1.5, opacity: 0 }); 
+            gsap.to(spineMat, { duration: 2, opacity: 0.9, delay: 0.5 }); 
+            gsap.to(camera.position, { duration: 2.5, z: 40, y: 0, ease: "power4.inOut" }); 
+            showVisionContent(1);
+            setTimeout(() => { gsap.set("#page-2", { visibility: "hidden" }); isAnimating = false; }, 2500);
+        }
+
+        function transitionBackTo2FromVision() {
+            isAnimating = true; currentPage = 2;
+            gsap.to("#page-6", { duration: 1, opacity: 0, y: 50, ease: "power3.inOut" });
+            gsap.set("#page-2", { visibility: "visible" });
+            gsap.fromTo("#page-2", { opacity: 0, x: -100 }, { duration: 1, opacity: 1, x: 0, ease: "power3.inOut", delay: 0.2 });
+            gsap.to(spineMat, { duration: 1, opacity: 0 }); 
+            gsap.to(bgMaterial, { duration: 2, opacity: 0.8, delay: 0.5 }); 
+            gsap.to(camera.position, { duration: 2, z: 12, y: 0, ease: "power4.inOut" });
+            gsap.to(bgMaterial.color, { duration: 2, r: 0.1, g: 0.3, b: 0.8 }); 
+            setTimeout(() => { gsap.set("#page-6", { visibility: "hidden" }); isAnimating = false; }, 2000);
+        }
+
+        function changeVisionPage(targetPage) {
+            isAnimating = true; const isScrollingDown = targetPage > currentVisionPage; const oldPage = currentVisionPage; currentVisionPage = targetPage;
+            gsap.to(`#v-sub-${oldPage}`, { duration: 0.8, opacity: 0, y: isScrollingDown ? -100 : 100, ease: "power3.in", onComplete: () => { document.getElementById(`v-sub-${oldPage}`).style.visibility = "hidden"; } });
+            
+            if(targetPage===1) { gsap.to(camera.position, {duration:1.5, y:0, z:40}); }
+            if(targetPage===2) { gsap.to(camera.position, {duration:1.5, y:15, z:35}); } 
+            if(targetPage===3) { gsap.to(camera.position, {duration:1.5, y:-15, z:45}); } 
+            if(targetPage===4) { gsap.to(camera.position, {duration:1.5, y:5, z:30}); } 
+
+            gsap.set(`#v-sub-${currentVisionPage}`, { visibility: "visible", y: isScrollingDown ? 100 : -100 });
+            gsap.to(`#v-sub-${currentVisionPage}`, { duration: 1, opacity: 1, y: 0, ease: "power3.out", delay: 0.6 });
+            setTimeout(() => { isAnimating = false; }, 1800); 
+        }
+
+        function showVisionContent(pageIndex) {
+            gsap.set(".vision-sub", { opacity: 0, visibility: "hidden", y: 100 });
+            gsap.set(`#v-sub-${pageIndex}`, { visibility: "visible" });
+            gsap.to(`#v-sub-${pageIndex}`, { duration: 1, opacity: 1, y: 0, ease: "power3.out", delay: 1 });
+        }
+
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+    </script>
+</body>
+</html>
